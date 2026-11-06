@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Password{% endblock %}
+{% block body %}
+<h1>{{ portal.name }}</h1>
+<div class="panel">
+  <p class="muted small">Username</p>
+  <pre class="pw">{{ portal.username }}</pre>
+  <p class="muted small">Password (click it to select, then copy)</p>
+  <pre class="pw">{{ password }}</pre>
+  <p class="muted small">This page is not cached and the password is not placed in the address bar.</p>
+  <a class="btn primary" href="/portals">Done</a>
+</div>
+{% endblock %}

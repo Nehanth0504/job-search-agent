@@ -1,0 +1,18 @@
+{% macro score_pill(v) -%}
+{%- if v is none %}<span class="pill lo">–</span>
+{%- else %}{% set n = v|round(0)|int %}<span class="pill {{ 'hi' if n >= 75 else ('mid' if n >= 60 else 'lo') }}">{{ n }}</span>{% endif -%}
+{%- endmacro %}
+{% macro ats_pill(v) -%}
+{%- if v is none %}<span class="muted small">not made</span>
+{%- else %}{% set n = v|round(0)|int %}<span class="pill {{ 'hi' if n >= 80 else 'mid' }}" title="ATS match of the tailored resume">{{ n }}</span>{% endif -%}
+{%- endmacro %}
+{% macro spons(s) -%}
+{%- if s == 'likely_sponsors' %}<span class="badge warn">Inferred</span>
+{%- elif s == 'sponsors' %}<span class="badge ok">Stated</span>
+{%- elif s == 'does_not_sponsor' %}<span class="badge bad">No</span>
+{%- else %}<span class="badge warn" title="The posting does not say, and no strong H-1B filing history was found. Confirm with the recruiter.">&#9873; Sponsorship unclear</span>{% endif -%}
+{%- endmacro %}
+{% macro status_badge(s) -%}
+{%- set c = {'notified':'info','applied':'ok','interview':'ok','offer':'ok','rejected_by_employer':'bad','rejected_sponsorship':'bad','wrong_level':'','needs_sponsorship_check':'warn','location_unclear':'warn'}.get(s,'') -%}
+<span class="badge {{ c }}">{{ s|label }}</span>
+{%- endmacro %}

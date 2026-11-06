@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Edit resume{% endblock %}
+{% block body %}
+<p class="small"><a href="/jobs/{{ job.id }}">&larr; Back to the job</a></p>
+<h1>Edit resume</h1>
+<p class="sub">{{ job.title }} &middot; {{ job.company }}. Change anything, then save. The Word file is rebuilt and re-checked each time.</p>
+{% if drafts %}
+<div class="panel" id="suggest">
+  <h2>Add missing keywords</h2>
+  <p class="small muted">The posting asks for these and your resume does not show them. Tick what you want in <b>this job's</b> resume:
+  skills go into your Skills section, bullets into your current role. Nothing is added until you click the button, and your master resume is never changed.
+  Edit the wording afterwards so every line is something you can speak to.</p>
+  <form method="post" action="/jobs/{{ job.id }}/resume/suggest">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    {% for d in drafts %}
+    <div style="border-top:1px solid var(--line);padding:12px 0">
+      <label style="font-weight:700"><input type="checkbox" name="skill" value="{{ d.skill }}" checked> {{ d.label }}</label>
+      <span class="muted small">&rarr; {{ d.group }}</span>
+      {% set outer = loop %}
+      {% for b in d.bullets %}
+      <div style="margin:6px 0 0 22px"><label class="small"><input type="checkbox" name="bullet_{{ d.skill }}_{{ loop.index0 }}" value="1"> {{ b }}</label></div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <button class="primary" type="submit">Add selected to this resume</button>
+  </form>
+</div>
+{% endif %}
+<form method="post" action="/jobs/{{ job.id }}/resume/edit">
+<input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<div class="grid3">
+  <div>
+    <div class="panel"><h2>Header</h2>
+      <p><input type="text" name="name" value="{{ st.name }}" style="width:100%"></p>
+      <input type="text" name="contact" value="{{ st.contact }}" style="width:100%"></div>
+    <div class="panel"><h2>Professional summary</h2>
+      <textarea name="summary" rows="{{ lines(st.summary) + 3 }}" style="min-height:140px">{{ st.summary }}</textarea></div>
+    <div class="panel"><h2>Skills &amp; tools</h2>
+      <p class="small muted">One group per line, like <code>Databases: PostgreSQL, MySQL</code>.</p>
+      <textarea name="skills" rows="{{ lines(skills_text) }}" style="min-height:200px">{{ skills_text }}</textarea></div>
+    {% for j in st.experience %}
+    {% set i = loop.index0 %}
+    <div class="panel"><h2>Experience {{ loop.index }}</h2>
+      <p><input type="text" name="job{{ i }}_title" value="{{ j.title }}" style="width:100%" placeholder="Title"></p>
+      <p class="row" style="gap:8px"><input type="text" name="job{{ i }}_company" value="{{ j.company }}" placeholder="Company" style="flex:2">
+        <input type="text" name="job{{ i }}_location" value="{{ j.location }}" placeholder="Location" style="flex:1"></p>
+      <p class="row" style="gap:8px"><input type="text" name="job{{ i }}_start" value="{{ j.start }}" placeholder="Start" style="flex:1">
+        <input type="text" name="job{{ i }}_end" value="{{ j.end }}" placeholder="End" style="flex:1"></p>
+      <p class="small muted" style="margin:6px 0 4px">One bullet per line.</p>
+      <textarea name="job{{ i }}_bullets" style="min-height:{{ 60 + 46 * j.bullets|length }}px">{{ j.bullets|join('\n') }}</textarea></div>
+    {% endfor %}
+    <div class="panel"><h2>Education</h2>
+      <textarea name="education" rows="{{ lines(edu_text) }}">{{ edu_text }}</textarea></div>
+    <div class="row" style="margin-bottom:30px">
+      <button class="primary" type="submit">Save &amp; rebuild resume</button>
+      {% if job.resume_file %}<a class="btn" href="/files/{{ job.id }}/{{ job.resume_file }}">Download .docx</a>{% endif %}
+    </div>
+  </div>
+  <div style="position:sticky;top:76px">
+    <div class="panel"><h2>ATS match</h2>
+    {% if report %}
+      <div class="row">
+        <div class="ring {{ 'ok' if report.score >= 80 else 'warn' }}" style="--p:{{ report.score|round(0)|int }}"><b>{{ report.score|round(0)|int }}</b></div>
+        <div class="small muted">{% for p in report.parts or [] %}{{ p.name }} {{ p.pts|round(0)|int }}/{{ p.max }}<br>{% endfor %}As of the last save</div>
+      </div>
+      <ul class="checks" style="grid-template-columns:1fr">{% for c in report.checks %}<li class="{{ '' if c.ok else 'no' }}">{{ c.name }}</li>{% endfor %}</ul>
+      <div class="small muted" style="margin-top:12px">Posting keywords not in this resume</div>
+      <div class="chips gap">{% for s in report.missing_terms or report.gaps %}<span>{{ s }}</span>{% else %}<span style="background:none" class="muted">none</span>{% endfor %}</div>
+    {% else %}<p class="muted small">Save once to see the check.</p>{% endif %}
+    </div>
+  </div>
+</div>
+</form>
+{% endblock %}

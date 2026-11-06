@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Insights{% endblock %}
+{% block body %}
+<h1>Insights</h1>
+<p class="sub">Where the openings for your role are, which keywords you are missing most, and how your search is going.</p>
+
+<div class="cards">
+  {% for label, n in funnel %}<div class="card"><div class="n">{{ n }}</div><div class="l">{{ label }}</div></div>{% endfor %}
+</div>
+
+<div class="grid2" style="margin-top:22px">
+  <div class="panel">
+    <h2>Companies posting your role most (last 30 days)</h2>
+    {% if companies %}
+    <table><thead><tr><th>Company</th><th>Postings</th><th>Latest</th></tr></thead><tbody>
+    {% for c in companies %}
+      <tr><td><a href="/jobs?status=all&q={{ c.company|urlencode }}">{{ c.company }}</a></td><td>{{ c.n }}</td>
+          <td class="small muted">{{ (c.last|posted).split(' · ')[1] if c.last else '' }}</td></tr>
+    {% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">No postings in the last 30 days yet.</p>{% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Keywords you miss most</h2>
+    <p class="small muted">Across your {{ n_match }} current and applied matches. The top ones are worth adding to your resume
+      (or learning), since they block you most often.</p>
+    {% if gaps %}
+    <table><tbody>
+    {% for s, n in gaps %}
+      <tr><td><span class="chips gap"><span>{{ s }}</span></span></td>
+          <td style="width:55%"><div style="height:8px;border-radius:4px;background:var(--warn-bg)">
+            <div style="height:8px;border-radius:4px;background:var(--warn);width:{{ (100 * n / gaps[0][1])|round(0)|int }}%"></div></div></td>
+          <td class="small muted" style="text-align:right">{{ n }} job{{ '' if n == 1 else 's' }}</td></tr>
+    {% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Your resume covers every keyword detected in your matches.</p>{% endif %}
+  </div>
+</div>
+
+<div class="grid2" style="margin-top:18px">
+  <div class="panel">
+    <h2>Postings per day (last 14 days)</h2>
+    {% if days %}
+    <table><tbody>
+    {% for r in days %}
+      <tr><td class="small" style="white-space:nowrap">{{ r.d }}</td>
+          <td style="width:70%"><div style="height:8px;border-radius:4px;background:var(--accent-soft)">
+            <div style="height:8px;border-radius:4px;background:var(--accent);width:{{ (100 * r.n / max_day)|round(0)|int }}%"></div></div></td>
+          <td class="small muted" style="text-align:right">{{ r.n }}</td></tr>
+    {% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">No dated postings yet.</p>{% endif %}
+  </div>
+  <div class="panel">
+    <h2>Sponsorship in your matches</h2>
+    <table><tbody>
+      <tr><td>Stated in the posting</td><td style="text-align:right">{{ spons.get('sponsors', 0) }}</td></tr>
+      <tr><td>Inferred from H-1B filing history</td><td style="text-align:right">{{ spons.get('likely_sponsors', 0) }}</td></tr>
+      <tr><td>Unclear</td><td style="text-align:right">{{ spons.get('unclear', 0) }}</td></tr>
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}

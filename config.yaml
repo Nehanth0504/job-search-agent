@@ -1,0 +1,130 @@
+# Your target roles (see roles.py).
+roles:
+  # only: forward_deployed  -> ONLY Forward Deployed Engineer titles count (current setting)
+  # only: all               -> both roles below (Software Engineer AI/ML and Forward Deployed Engineer)
+  only: forward_deployed
+  # Role A: Software Engineer, AI/ML. Needs one word from each of these two lists.
+  engineer_words: [engineer, developer, sde, swe]
+  ai_words: [ai, ml, machine learning, llm, llms, genai, generative ai, generative, mlops, "deep learning"]
+  # Role B: Forward Deployed Engineer
+  forward_deployed: [forward deployed, forward-deployed, forward deploy, fde, fdse]
+  # ...and it must be an engineering job: "Forward Deployed Consultant / Operator / Strategist" are left out
+  fde_engineer_words: [engineer, engineering, developer, fde, fdse, swe]
+  # Dropped even if the words above match: wrong level, or a different kind of job.
+  exclude_title:
+    - intern
+    - internship
+    - co-op
+    - new grad
+    - graduate
+    - junior
+    - jr
+    - entry
+    - apprentice
+    - associate
+    - staff
+    - principal
+    - distinguished
+    - fellow
+    - head
+    - director
+    - vp
+    - vice president
+    - manager
+    - management
+    - architect
+    - research
+    - researcher
+    - scientist
+    - data engineer
+    - data analyst
+    - analytics
+    - sales
+    - recruiter
+    - support
+    - hardware
+    - mechanical
+    - electrical
+    - silicon
+    - firmware
+    - manufacturing
+    - qa
+    - sdet
+
+# United States only. When a posting's location says nothing clear (a bare "Remote", "Anywhere"):
+#   hold = save it as "Location unclear" for you to review in the dashboard (default)
+#   keep = treat it as a normal match     drop = ignore it
+location:
+  country: US
+  unclear: allow        # US jobs only; postings that don't clearly say (e.g. just "Remote") are listed with a yellow "Check location" flag
+
+# You have about 5 years of experience. Postings that state how many years they want must ask
+# for a number inside this band. Postings that state no years are judged on their title only.
+experience:
+  your_years: 5
+  min_required_ok: 0     # 0 = postings asking for fewer years are fine too
+  max_required_ok: 5     # skip postings asking for more than 5 years (6+, 7+, 8+ ...)
+
+alert_email: you@example.com
+daily_summary:                 # one end-of-day email: today's matches and what you applied to
+  enabled: true
+  hour: 21                     # 9 PM, local time on the server (America/Chicago)
+  dashboard_url: https://jobagent.your-tailnet.ts.net
+
+# used by the application filler for "authorized to work?" / "require sponsorship?" questions
+work_authorization: H-1B
+requires_sponsorship: true
+
+master_resume: profile/master_resume.json
+min_score: 0           # 0 = every matching job is listed (the tailored resume does the matching)
+
+max_per_company: 2
+poll_minutes: 30        # more companies are watched now, so check every 30 minutes
+min_sponsorship: sponsors_or_history   # sponsors | sponsors_or_history | unclear_ok
+max_posting_age_days: 3   # only postings from the last 3 days are new matches; older ones go to 'Older posting'
+auto_add_missing_keywords: true   # add each posting's missing keywords to that job's resume ('Additional Skills' line)
+company_source_only: true   # jobs from job-search sites must be found on the company's own site; else 'Only on job sites'
+hold_unclear_sponsorship: false     # false = unclear jobs are listed with new matches (flagged) and get a resume; true = held
+h1b_history:              # used only when no sponsorship wording is in the posting
+  data_file: data/h1b_index.db
+  min_certified: 25       # certified H-1B positions in the loaded DOL data
+  min_tech: 5             # of which in software / data / ML roles
+  min_transfers: 3        # positions filed as employer changes (transfers), i.e. they hire H-1B holders
+
+# Fast lane: these companies are re-checked every `seconds` (listing sites like JSearch every poll_minutes). A new posting is
+# normally picked up within one to two minutes, as long as the agent is running (laptop awake, or on a server).
+# Names must match companies.yaml.
+fast_lane:
+  seconds: 60
+  companies: hiring              # hiring = companies whose board currently shows your roles (all are checked every poll_minutes); or all; or a list of names
+
+# Listings from LinkedIn, Indeed, Glassdoor and company sites through the JSearch service (Google for Jobs).
+# Needs an API key: put  JSEARCH_API_KEY=...  in the .env file in this folder (never paste it in chat).
+# It is billed per request, so it runs at most every `every_minutes`.
+sources:
+  jsearch:
+    enabled: true               # needs JSEARCH_API_KEY (put it in the .env file); without it this is skipped
+    provider: openwebninja      # or: rapidapi
+    queries: ["Forward Deployed Engineer", "Forward Deployed Software Engineer", "Forward Deployed AI Engineer"]
+    country: us
+    date_posted: today          # all | today | 3days | week | month
+    pages_per_query: 2          # 3 searches x 2 pages x 48 runs a day = at most ~8,600 requests a month (Pro: 10,000)          # 10 jobs per page, one request each
+    every_minutes: 30
+
+link_check:
+  every_minutes: 30   # re-open every listed job link; closed postings and links that open a different job leave New match
+
+claude:                 # Claude rewrites each tailored resume for the posting (needs ANTHROPIC_API_KEY in .env)
+  enabled: true
+  model: claude-sonnet-5-5
+  max_per_day: 25       # at most this many Claude-written resumes a day (caps the cost); after that the plain tailoring is used
+
+# Jobs seen only on job sites (LinkedIn, Indeed...) from real employers, not yet found on the company's own site:
+#   flag = list them with a "Not confirmed on company site" flag ("Open posting" searches the company's careers site)
+#   off  = keep them in "Only on job sites". Recruiters and job sites themselves are always kept out.
+unconfirmed_jobs: flag
+
+# Big employers whose own careers sites the agent reads directly (added to the watch list)
+extra_companies:
+  - {name: Amazon, ats: amazon}
+  - {name: EY, ats: successfactors, host: careers.ey.com, site: ey}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}My resume{% endblock %}
+{% block body %}
+<h1>My resume</h1>
+<p class="sub">Your master resume lives here. Every tailored resume is built from it, using only what it contains.</p>
+<div class="grid3">
+  <div class="panel">
+    <h2>Current master resume</h2>
+    {% if info %}
+      <div class="row" style="margin-bottom:12px">
+        <div><div style="font-size:20px;font-weight:700">{{ info.name }}</div>
+          <div class="muted small">Updated {{ info.updated|fdate }}</div></div>
+      </div>
+      <div class="cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+        <div class="card"><div class="n">{{ info.jobs }}</div><div class="l">Jobs</div></div>
+        <div class="card"><div class="n">{{ info.bullets }}</div><div class="l">Bullets</div></div>
+        <div class="card"><div class="n">{{ info.skills }}</div><div class="l">Skills</div></div>
+      </div>
+      <h2>Experience</h2>
+      <ul class="files">{% for c, t, s, e, n in info.experience %}<li><span><b>{{ c }}</b> &middot; {{ t }}</span><span class="muted small">{{ s }} &ndash; {{ e }} &middot; {{ n }} bullets</span></li>{% endfor %}</ul>
+      <h2 style="margin-top:14px">Skill groups</h2>
+      <div class="chips">{% for g in info.groups %}<span>{{ g }}</span>{% endfor %}</div>
+      {% if info.has_docx %}<p style="margin-top:14px"><a class="btn" href="/resume/master.docx">Download original (.docx)</a></p>{% endif %}
+    {% else %}
+      <div class="empty">No master resume yet. Upload your resume on the right.</div>
+    {% endif %}
+  </div>
+  <div>
+    <div class="panel">
+      <h2>Upload a new version</h2>
+      <p class="small muted">Word (.docx). It needs sections for <b>Summary</b>, <b>Skills</b> (or Technical Skills), <b>Experience</b> (or Professional / Work Experience) and <b>Education</b>, in any capitalisation. A resume downloaded from this dashboard works too. The old file is backed up and nothing changes if the new one can't be read.</p>
+      <form method="post" action="/resume/upload" enctype="multipart/form-data">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input type="file" name="resume" accept=".docx" required>
+        <p><button class="primary" type="submit">Save as master resume</button></p>
+      </form>
+    </div>
+    <a class="card" href="/tailor" style="display:block"><b>Tailor to a job description &rarr;</b><div class="muted small">Paste any posting and get a tailored resume right away.</div></a>
+  </div>
+</div>
+{% endblock %}

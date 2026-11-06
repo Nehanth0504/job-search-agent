@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Today{% endblock %}
+{% block head %}<meta http-equiv="refresh" content="60">{% endblock %}
+{% block body %}
+<h1>Posted today &amp; yesterday</h1>
+<p class="sub">{{ total }} matching position{{ '' if total == 1 else 's' }} that companies posted in this window (by the company's own posting date), best first. Work down the list.</p>
+<div class="tabs">
+  {% for k, l in [('2d','Today + yesterday'),('today','Today'),('yesterday','Yesterday'),('3d','Last 3 days')] %}
+    <a href="/today?when={{ k }}" class="{{ 'on' if when == k }}">{{ l }}</a>
+  {% endfor %}
+</div>
+{% if rows %}
+<div class="tablewrap"><table>
+  <thead><tr><th>#</th><th>Priority</th><th>Job</th><th>Why it ranks here</th><th></th></tr></thead>
+  <tbody>
+  {% for p, why, j in rows %}
+  <tr>
+    <td class="muted">{{ loop.index }}</td>
+    <td><span class="pill {{ 'hi' if p >= 75 else ('mid' if p >= 60 else 'lo') }}">{{ p|round(0)|int }}</span></td>
+    <td><a class="t" href="/jobs/{{ j.id }}">{{ j.title }}</a>{% if unconfirmed(j) %} <span class="badge warn" title="Seen on a job site; the agent hasn't found it on the company's own careers site yet. Check it there before applying.">&#9873; Not confirmed on company site</span>{% endif %}
+        <div class="muted small">{{ j.company }}{% if j.location %} &middot; {{ j.location }}{% endif %}</div>
+        {% if j.posted_at %}<div class="small" title="Date the company posted it">Posted {{ j.posted_at|posted }}</div>{% elif j.first_seen %}<div class="small muted" title="The company did not publish a date">Found {{ j.first_seen|fdate }}</div>{% endif %}</td>
+    <td class="small muted" style="max-width:320px">{{ why|join(' · ') }}</td>
+    <td style="text-align:right;white-space:nowrap">
+      {% set u = open_url(j)|safe_url %}{% if u %}<a href="{{ u }}" target="_blank" rel="noopener noreferrer">Posting &#8599;</a>{% endif %}
+      <form class="inline" method="post" action="/jobs/{{ j.id }}/resume/tailor" style="margin-left:8px">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="next" value="edit">
+        <button type="submit">Tailor</button></form>
+      <form class="inline" method="post" action="/jobs/{{ j.id }}/status">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="status" value="applied">
+        <input type="hidden" name="next" value="/today?when={{ when }}">
+        <button type="submit">Mark applied</button></form>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="muted small" style="margin-top:10px">Priority combines your resume match (55%), how certain sponsorship is (25%), keyword coverage (15%) and freshness (5%). It ranks fit and practicality. It can't predict whether an employer will reply. Jobs you mark applied leave this list.</p>
+{% else %}
+<div class="empty">No matching postings with a posting date in this window yet. New ones appear within about a minute of going live.</div>
+{% endif %}
+{% if undated %}
+<details class="panel" style="margin-top:18px">
+  <summary>{{ undated|length }} more found in this window whose company does not publish a posting date</summary>
+  <ul class="files" style="margin-top:10px">{% for j in undated %}<li><a href="/jobs/{{ j.id }}">{{ j.title }}</a> &middot; {{ j.company }} <span class="muted small">(found {{ j.first_seen|fdate }}, match {{ (j.score or 0)|round(0)|int }})</span></li>{% endfor %}</ul>
+</details>
+{% endif %}
+{% endblock %}

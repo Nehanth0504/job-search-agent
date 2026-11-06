@@ -1,0 +1,180 @@
+{
+  "name": "Alex Rivera",
+  "contact": "alex.rivera@example.com | (555) 010-0100 | Austin, TX",
+  "summary": "Python full stack developer with 5+ years of experience building FastAPI and Django services, React.js front ends and Generative AI features with Azure OpenAI, RAG and semantic search. Works directly with business users to ship secure, tested software to AWS and Azure.",
+  "skills": {
+    "Programming Languages": [
+      "Python",
+      "JavaScript (ES6+)",
+      "SQL",
+      "HTML5",
+      "CSS3"
+    ],
+    "Backend Development": [
+      "FastAPI",
+      "Django",
+      "Django REST Framework (DRF)",
+      "Flask",
+      "RESTful APIs",
+      "Microservices",
+      "Async/Await",
+      "Pydantic",
+      "HTTPX"
+    ],
+    "Frontend Development": [
+      "React.js",
+      "React Hooks",
+      "Axios",
+      "Bootstrap",
+      "Responsive Web Development"
+    ],
+    "Generative AI & LLMs": [
+      "Azure OpenAI",
+      "Large Language Models (LLMs)",
+      "Retrieval-Augmented Generation (RAG)",
+      "Prompt Engineering",
+      "Prompt Templates",
+      "Document Summarization",
+      "Semantic Search",
+      "Text Embeddings"
+    ],
+    "AI/ML Frameworks & Libraries": [
+      "Scikit-learn",
+      "Pandas",
+      "NumPy",
+      "Natural Language Processing (NLP)",
+      "Feature Engineering",
+      "Classification Models",
+      "Model Evaluation",
+      "FAISS"
+    ],
+    "Data Processing & Retrieval": [
+      "Document Ingestion",
+      "Text Extraction",
+      "Data Preprocessing",
+      "Data Validation",
+      "Data Transformation",
+      "Vector Similarity Search",
+      "Source Metadata Management"
+    ],
+    "Databases": [
+      "PostgreSQL",
+      "MySQL",
+      "MongoDB",
+      "SQL Query Optimization",
+      "Django ORM"
+    ],
+    "Cloud Technologies": [
+      "AWS (EC2, S3, Lambda)",
+      "Microsoft Azure",
+      "Azure OpenAI Service"
+    ],
+    "DevOps & CI/CD": [
+      "Docker",
+      "Git",
+      "GitLab",
+      "Jenkins",
+      "CI/CD Pipelines",
+      "Environment Configuration"
+    ],
+    "Testing & API Tools": [
+      "Pytest",
+      "Unit Testing",
+      "Integration Testing",
+      "API Testing",
+      "Postman",
+      "Mocking",
+      "Regression Testing"
+    ],
+    "Security & Monitoring": [
+      "API Authentication",
+      "Role-Based Access Control (RBAC)",
+      "OAuth-Based Integrations",
+      "Structured Logging",
+      "Error Handling",
+      "PHI/PII Data Protection"
+    ],
+    "Development Tools & Methodologies": [
+      "VS Code",
+      "Jira",
+      "Confluence",
+      "Agile",
+      "Scrum",
+      "SDLC",
+      "Production Support"
+    ]
+  },
+  "experience": [
+    {
+      "company": "Northwind Health",
+      "location": "Remote",
+      "title": "Sr. Python Full Stack Developer - AI/ML",
+      "start": "August 2025",
+      "end": "Current",
+      "bullets": [
+        "Built FastAPI microservices in Python with Pydantic validation and async HTTPX clients for claims and member data.",
+        "Designed a Retrieval-Augmented Generation (RAG) service on Azure OpenAI with FAISS semantic search over 50,000 policy documents.",
+        "Wrote prompt templates and evaluation scripts that cut LLM summarization errors by 30% in user testing.",
+        "Built document ingestion and text extraction pipelines with Pandas and NumPy, including data validation and PHI/PII masking.",
+        "Developed React.js dashboards with React Hooks and Axios that let case workers search and review AI summaries.",
+        "Containerized services with Docker and deployed them through GitLab CI/CD pipelines to AWS EC2 and Lambda.",
+        "Added role-based access control (RBAC), OAuth-based integrations and structured logging to production APIs.",
+        "Optimized PostgreSQL queries and indexes, reducing p95 API latency from 900 ms to 250 ms.",
+        "Wrote Pytest unit and integration tests with mocking, raising coverage to 85%.",
+        "Worked with business users and product owners in Agile Scrum sprints to turn requirements into shipped features.",
+        "Trained scikit-learn classification models for document routing and tracked model evaluation metrics.",
+        "Provided production support, triaging incidents with Jira and documenting runbooks in Confluence."
+      ]
+    },
+    {
+      "company": "Contoso Public Services",
+      "location": "Remote",
+      "title": "Python Full Stack Developer",
+      "start": "June 2023",
+      "end": "July 2025",
+      "bullets": [
+        "Built Django and Django REST Framework (DRF) APIs for case management used by 2,000 staff.",
+        "Created React.js front-end pages with Bootstrap for responsive web development.",
+        "Implemented NLP feature engineering and text embeddings for semantic search across case notes.",
+        "Automated data transformation jobs in Python and SQL with MySQL and MongoDB sources.",
+        "Set up Jenkins CI/CD pipelines and environment configuration for dev, test and production.",
+        "Wrote API tests in Postman and regression tests in Pytest for every release.",
+        "Built Flask services for document summarization with Large Language Models (LLMs).",
+        "Improved SQL query optimization and Django ORM usage, cutting report run time by 40%.",
+        "Partnered with stakeholders on requirements, demos and user acceptance testing.",
+        "Handled API authentication, error handling and audit logging for sensitive data."
+      ]
+    },
+    {
+      "company": "Fabrikam Financial",
+      "location": "Dallas, TX",
+      "title": "Python Full Stack Developer",
+      "start": "September 2022",
+      "end": "June 2023",
+      "bullets": [
+        "Developed Python and Flask RESTful APIs for payments and account services.",
+        "Built PostgreSQL schemas and SQL reports for finance teams.",
+        "Wrote unit tests with Pytest and maintained Git workflows in GitLab.",
+        "Integrated third-party APIs with OAuth and retry/error handling.",
+        "Built internal tools with JavaScript (ES6+), HTML5 and CSS3."
+      ]
+    },
+    {
+      "company": "Tailspin Software",
+      "location": "Remote",
+      "title": "Python Developer",
+      "start": "Jan 2020",
+      "end": "December 2020",
+      "bullets": [
+        "Developed Python and Flask RESTful APIs for payments and account services.",
+        "Built PostgreSQL schemas and SQL reports for finance teams.",
+        "Wrote unit tests with Pytest and maintained Git workflows in GitLab.",
+        "Integrated third-party APIs with OAuth and retry/error handling."
+      ]
+    }
+  ],
+  "education": [
+    "Master of Science - Computer Science - August 2022",
+    "Example State University, Austin TX"
+  ]
+}

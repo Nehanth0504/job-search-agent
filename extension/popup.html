@@ -1,0 +1,22 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  body{font:13px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;width:340px;margin:0;padding:14px;color:#14171f}
+  h1{font-size:15px;margin:0 0 10px} .muted{color:#677084} .job{background:#f0f2f6;border-radius:10px;padding:10px;margin:8px 0}
+  .job b{display:block} select{width:100%;padding:6px;border-radius:8px;border:1px solid #ccd;margin:6px 0}
+  button{width:100%;margin-top:8px;padding:9px;border:0;border-radius:9px;font-weight:600;cursor:pointer}
+  .primary{background:#6d5efc;color:#fff} .second{background:#e9e6ff;color:#3b2fd1} button:disabled{opacity:.5;cursor:default}
+  #out{margin-top:10px;white-space:pre-wrap} .ok{color:#0f7a4a} .bad{color:#b3261e} .warn{color:#8a5a00}
+  a{color:#3b2fd1}
+</style></head>
+<body>
+<h1>Job Agent</h1>
+<div id="status" class="muted">Looking up this page…</div>
+<div id="jobbox"></div>
+<select id="pick" style="display:none"></select>
+<button id="fill" class="primary" disabled>Fill this application</button>
+<button id="done" class="second" disabled>I submitted it: mark as applied</button>
+<div id="out"></div>
+<p class="muted" style="margin-top:12px">It never clicks Submit. Review every field first. <a href="#" id="opts">Settings</a></p>
+<script src="popup.js"></script>
+</body></html>

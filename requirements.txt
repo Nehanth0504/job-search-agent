@@ -1,0 +1,9 @@
+pyyaml
+flask
+cryptography
+python-docx
+httpx
+pytest
+# only needed to build the H-1B index from .xlsx files:
+pandas
+openpyxl

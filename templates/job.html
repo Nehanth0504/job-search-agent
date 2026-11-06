@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block body %}
+{% from "_macros.html" import score_pill, status_badge %}
+<p class="small"><a href="/jobs">&larr; All jobs</a></p>
+<h1>{{ job.title }}</h1>
+<p class="sub"><b style="color:var(--ink)">{{ job.company }}</b>{% if job.location %} &middot; {{ job.location }}{% endif %}{% if loc_unclear(job.location, job.description if job.description is defined else none) %} <span class="badge warn" title="The posting doesn't clearly say it is in the US or open to US remote. Check before applying.">&#9873; Check location</span>{% endif %}
+  &nbsp;{{ status_badge(job.status) }}{% if unconfirmed(job) %} <span class="badge warn" title="Seen on a job site; the agent hasn't found it on the company's own careers site yet. Check it there before applying.">&#9873; Not confirmed on company site</span>{% endif %}
+  {% if job.posted_at %}<span class="badge" title="Date the company posted it">Posted {{ job.posted_at|posted }}</span>{% endif %}
+  {% if used >= max_per_company %}<span class="badge warn">{{ job.company }}: {{ used }} of {{ max_per_company }} slots used</span>{% endif %}</p>
+<div class="row" style="margin-bottom:22px">
+  {% set u = job.url|safe_url %}{% set uk = link_kind(job.url, job.company, job.employer_site or '') %}
+  {% if uk == 'jobsite' %}<a class="btn primary" href="{{ careers_search(job.company, job.title) }}" target="_blank"
+     rel="noopener noreferrer" title="Searches for this job on {{ job.company }}'s own careers site">Find on {{ job.company }}'s careers site &#8599;</a>
+  {% elif u %}<a class="btn primary" href="{{ u }}" target="_blank" rel="noopener noreferrer"
+     title="{{ link_host(job.url) }}">Open posting &#8599;</a>{% endif %}
+  <form class="inline" method="post" action="/jobs/{{ job.id }}/resume/tailor">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="next" value="edit">
+    <button class="btn primary" type="submit">{{ 'Rebuild &amp; edit resume'|safe if job.resume_file else 'Tailor resume' }}</button>
+  </form>
+  {% if job.resume_file %}<a class="btn" href="/jobs/{{ job.id }}/resume/edit">Edit resume</a>
+  <a class="btn" href="/jobs/{{ job.id }}/cover/edit">{{ 'Cover letter' if cover else 'Write cover letter' }}</a>{% endif %}
+  <a class="btn" href="/jobs/{{ job.id }}/answers">Application answers</a>
+  <span class="muted small">Match with your resume</span> {{ score_pill(job.score) }}
+</div>
+
+{% set alls = job.apply_links|fromjson %}
+{% if alls and alls|length > 1 %}
+<p class="small muted" style="margin:-12px 0 18px">Also listed at:
+  {% for l in alls %}{% if l != job.url and l|safe_url %}<a href="{{ l }}" target="_blank" rel="noopener noreferrer">{{ link_host(l).replace('www.', '') }}{% if link_kind(l, job.company, job.employer_site or '') == 'company' %} (company){% endif %}</a>{% if not loop.last %} &middot; {% endif %}{% endif %}{% endfor %}</p>
+{% endif %}
+<div class="grid3">
+<div>
+  <div class="panel">
+    <h2>Tailored resume</h2>
+    {% set r = job.ats_report|fromjson %}
+    {% if r %}
+    <div class="row">
+      <div class="ring {{ 'ok' if r.score >= 80 else 'warn' }}" style="--p:{{ r.score|round(0)|int }}"><b>{{ r.score|round(0)|int }}</b></div>
+      <div style="flex:1;min-width:200px">
+        <div><b>ATS match: {{ r.score|round(0)|int }} / 100</b>
+          {% if r.meets_target %}<span class="badge ok">strong match</span>{% else %}<span class="badge warn">below 80</span>{% endif %}</div>
+        <div class="muted small">{% for p in r.parts or [] %}{{ p.name }} {{ p.pts|round(0)|int }}/{{ p.max }}{% if not loop.last %} &middot; {% endif %}{% endfor %}</div>
+        {% if r.missing_terms %}<div class="small" style="margin-top:6px">Posting keywords not in this resume:</div><div class="chips gap">{% for s in r.missing_terms[:15] %}<span>{{ s }}</span>{% endfor %}</div>{% endif %}
+        {% if job.resume_file %}<p style="margin:12px 0 0"><a class="btn primary" href="/files/{{ job.id }}/{{ job.resume_file }}">Download resume (.docx)</a> <a class="btn" href="/jobs/{{ job.id }}/resume/edit">Edit</a></p>
+        {% if cover %}<p style="margin:8px 0 0"><a class="btn primary" href="/files/{{ job.id }}/{{ cover }}">Download cover letter (.docx)</a> <a class="btn" href="/jobs/{{ job.id }}/cover/edit">Edit</a></p>{% endif %}{% endif %}
+      </div>
+    </div>
+    <ul class="checks">{% for c in r.checks %}<li class="{{ '' if c.ok else 'no' }}">{{ c.name }}</li>{% endfor %}</ul>
+    
+    {% else %}
+    <p class="muted">No tailored resume yet for this job.</p>
+    {% endif %}
+    <form method="post" action="/jobs/{{ job.id }}/resume/tailor" style="margin-top:14px">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button type="submit">{{ 'Rebuild from master' if r else 'Create tailored resume' }}</button>
+    </form>
+  </div>
+  <div class="panel">
+    <h2>Status</h2>
+    <form method="post" action="/jobs/{{ job.id }}/status">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <select name="status">
+        {% if job.status not in user_statuses %}<option value="" selected>{{ job.status|label }}</option>{% endif %}
+        {% for s in user_statuses %}<option value="{{ s }}" {{ 'selected' if s == job.status }}>{{ s|label }}</option>{% endfor %}
+      </select>
+      <button class="primary" type="submit">Save</button>
+    </form>
+    {% if app_row and app_row.applied_at %}<p class="muted small">Applied on {{ app_row.applied_at|fdate }}</p>{% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Sponsorship</h2>
+    {% if job.sponsorship == 'likely_sponsors' %}
+      <span class="badge warn">Inferred, not stated in the posting</span>
+      <p class="small">Based on this employer's H-1B filing history. Confirm with the recruiter before applying.</p>
+    {% elif job.sponsorship == 'sponsors' %}<span class="badge ok">Stated in the posting</span>
+      <p class="small">The posting says it offers sponsorship.</p>
+    {% elif job.sponsorship == 'does_not_sponsor' %}<span class="badge bad">Posting rules it out</span>
+      <p class="small">The posting excludes candidates who need sponsorship.</p>
+    {% else %}<span class="badge warn">Unclear</span>
+      <p class="small">{% if job.status == 'needs_sponsorship_check' %}Held because the posting does not say whether it sponsors, and no H-1B filing history for this employer is loaded yet.{% else %}The posting does not say whether it sponsors.{% endif %}
+      Ask the recruiter before applying, or load the DOL H-1B data so the agent can check this employer's filing history.</p>
+    {% endif %}
+    {% if job.sponsorship_evidence %}<blockquote>{{ job.sponsorship_evidence }}</blockquote>{% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Skills</h2>
+    <div class="small muted">On your resume</div>
+    <div class="chips">{% for s in (job.matched or '').split(', ') if s %}{% if s in added %}<span class="ok" title="Added to this job's resume">&#10003; {{ s }} &middot; added</span>{% else %}<span>{{ s }}</span>{% endif %}{% else %}<span class="muted">none detected</span>{% endfor %}</div>
+    {% if added %}<p class="small muted" style="margin:8px 0 0">Saved in this job's tailored resume: {{ added|join(', ') }}. The match score above now counts them.</p>{% endif %}
+    <div class="small muted" style="margin-top:10px">Keywords missing from your resume</div>
+    <div class="chips gap">{% for s in (job.gaps or '').split(', ') if s %}<span>{{ s }}</span>{% else %}<span style="background:none" class="muted">none, your resume covers everything detected</span>{% endfor %}</div>
+    {% if job.gaps %}<p style="margin:12px 0 0"><a class="btn" href="/jobs/{{ job.id }}/resume/edit#suggest">Add missing keywords to this resume</a></p>{% endif %}
+  </div>
+</div>
+
+<div>
+  <div class="panel">
+    <h2>Notes &amp; follow-up</h2>
+    <form method="post" action="/jobs/{{ job.id }}/notes">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <textarea name="notes" placeholder="Recruiter name, referral, questions asked&hellip;">{{ app_row.notes if app_row and app_row.notes else '' }}</textarea>
+      <p>Follow up on <input type="date" name="follow_up" value="{{ app_row.follow_up if app_row and app_row.follow_up else '' }}"></p>
+      <p>Applied through
+        <select name="portal_id">
+          <option value="">(none)</option>
+          {% for p in portals %}<option value="{{ p.id }}" {{ 'selected' if app_row and app_row.portal_id == p.id }}>{{ p.name }}</option>{% endfor %}
+        </select>
+        <a class="small" href="/portals">manage portals</a></p>
+      <button class="primary" type="submit">Save</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h2>All saved resume files</h2>
+    {% if files %}
+      <ul class="files">{% for f in files %}<li><a href="/files/{{ job.id }}/{{ f }}">{{ f }}</a></li>{% endfor %}</ul>
+    {% else %}<p class="muted small">No resume saved for this job yet.</p>{% endif %}
+    <form class="inline" method="post" action="/jobs/{{ job.id }}/resume/current">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button type="submit">Save a copy of my master resume</button>
+    </form>
+    <form method="post" action="/jobs/{{ job.id }}/resume" enctype="multipart/form-data" style="margin-top:10px">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="file" name="resume" accept=".pdf,.docx,.doc,.txt">
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+</div>
+</div>
+
+<details class="panel">
+  <summary>Full job description</summary>
+  <p style="white-space:pre-wrap">{{ job.description or 'No description saved.' }}</p>
+</details>
+{% endblock %}

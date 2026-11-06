@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Portals &amp; logins{% endblock %}
+{% block body %}
+<h1>Portals &amp; logins</h1>
+
+<div class="panel">
+  {% if not initialized %}
+    <h2 style="margin-top:0">Create your master password</h2>
+    <p class="small">Portal passwords are encrypted with a master password that only you know. It is never stored,
+      and <b>if you forget it the saved passwords cannot be recovered</b>. Use at least 10 characters, and do not reuse
+      a password from anywhere else.</p>
+    <form method="post" action="/vault/setup">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <p><input type="password" name="master" placeholder="Master password" autocomplete="new-password" required>
+         <input type="password" name="confirm" placeholder="Repeat it" autocomplete="new-password" required>
+         <button class="primary" type="submit">Create vault</button></p>
+    </form>
+  {% elif not unlocked %}
+    <h2 style="margin-top:0">Vault is locked</h2>
+    <form method="post" action="/vault/unlock">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="password" name="master" placeholder="Master password" autocomplete="current-password" required>
+      <button class="primary" type="submit">Unlock</button>
+    </form>
+  {% else %}
+    <form method="post" action="/vault/lock">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <span class="badge ok">Vault unlocked</span> <span class="muted small">locks itself after 15 minutes of inactivity</span>
+      <button type="submit">Lock now</button>
+    </form>
+  {% endif %}
+</div>
+
+{% if rows %}
+<div class="tablewrap"><table>
+  <tr><th>Portal</th><th>Username</th><th>Password</th><th>Notes</th><th></th></tr>
+  {% for p in rows %}
+  <tr>
+    <td>{% set u = p.url|safe_url %}{% if u %}<a href="{{ u }}" target="_blank" rel="noopener noreferrer">{{ p.name }} &#8599;</a>{% else %}{{ p.name }}{% endif %}</td>
+    <td>{{ p.username }}</td>
+    <td>{% if p.has_pw %}
+      <form class="inline" method="post" action="/portals/{{ p.id }}/reveal">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <span class="muted">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
+        <button type="submit" {{ 'disabled' if not unlocked }}>Reveal</button>
+      </form>{% else %}<span class="muted">none saved</span>{% endif %}</td>
+    <td class="small muted">{{ p.notes }}</td>
+    <td><form class="inline" method="post" action="/portals/{{ p.id }}/delete">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button class="danger" type="submit">Delete</button></form></td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% else %}
+<div class="panel muted">No portals saved yet.</div>
+{% endif %}
+
+{% if unlocked %}
+<h2>Add a portal</h2>
+<div class="panel">
+  <form method="post" action="/portals/add">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <p><input type="text" name="name" placeholder="Name, e.g. Workday - Acme" required style="width:260px">
+       <input type="text" name="url" placeholder="https://&hellip; login link" style="width:320px"></p>
+    <p><input type="text" name="username" placeholder="Username or email" autocomplete="off" style="width:260px">
+       <input type="password" name="password" placeholder="Password" autocomplete="new-password" style="width:260px"></p>
+    <p><input type="text" name="notes" placeholder="Notes (optional, NOT encrypted: no secrets here)" style="width:540px"></p>
+    <button class="primary" type="submit">Save portal</button>
+  </form>
+</div>
+{% endif %}
+<p class="muted small">Usernames, links and notes are stored in plain text in <code>jobs.db</code>; only passwords are encrypted.
+For your most important accounts, a password manager is still the better home.</p>
+{% endblock %}

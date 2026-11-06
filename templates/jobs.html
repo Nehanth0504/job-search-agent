@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "_macros.html" import score_pill, ats_pill, spons, status_badge %}
+{% block title %}Jobs{% endblock %}
+{% block body %}
+<h1>Jobs</h1>
+<p class="sub">Every posting the agent has looked at. Click a title to see the tailored resume, notes and the link to apply.</p>
+<div class="tabs">
+  {% set total = counts.values()|sum %}
+  <a href="/jobs?status=all" class="{{ 'on' if status == 'all' }}">All ({{ total }})</a>
+  {% for s in ['notified','applied','interview','offer','needs_sponsorship_check','location_unclear','low_score','wrong_level','capped','rejected_by_employer','withdrawn','skipped','rejected_sponsorship','too_old','other_role','jobsite_only','outside_us','posting_closed','link_wrong','duplicate'] %}
+    {% if counts.get(s) %}<a href="/jobs?status={{ s }}" class="{{ 'on' if status == s }}">{{ s|label }} ({{ counts[s] }})</a>{% endif %}
+  {% endfor %}
+</div>
+<form class="filters" method="get" action="/jobs">
+  <input type="hidden" name="status" value="{{ status }}">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search company or title" style="min-width:230px">
+  <input type="number" name="min_score" value="{{ min_score }}" placeholder="Min match" min="0" max="100" style="width:120px">
+  <select name="sort">
+    <option value="score" {{ 'selected' if sort == 'score' }}>Best match</option>
+    <option value="posted" {{ 'selected' if sort == 'posted' }}>Newest posted</option>
+    <option value="newest" {{ 'selected' if sort == 'newest' }}>Newest found</option>
+    <option value="company" {{ 'selected' if sort == 'company' }}>Company A&ndash;Z</option>
+  </select>
+  <button class="primary" type="submit">Apply</button>
+</form>
+
+{% if rows %}
+<div class="tablewrap"><table>
+  <thead><tr><th>Match</th><th>Resume ATS</th><th>Job</th><th>Posted</th><th>Sponsorship</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for j in rows %}
+  <tr>
+    <td>{{ score_pill(j.score) }}</td>
+    <td>{{ ats_pill(j.ats_score) }}</td>
+    <td><a class="t" href="/jobs/{{ j.id }}">{{ j.title }}</a>
+        <div class="muted small">{{ j.company }}{% if j.location %} &middot; {{ j.location }}{% endif %}{% if loc_unclear(j.location, j.description if j.description is defined else none) %} <span class="badge warn" title="The posting doesn't clearly say it is in the US or open to US remote. Check before applying.">&#9873; Check location</span>{% endif %}{% if unconfirmed(j) %} <span class="badge warn" title="Seen on a job site; the agent hasn't found it on the company's own careers site yet. Check it there before applying.">&#9873; Not confirmed on company site</span>{% endif %}</div></td>
+    <td class="small" style="white-space:nowrap">{% if j.posted_at %}{% set p = (j.posted_at|posted).split(' · ') %}{{ p[0] }}<div class="muted">{{ p[1] }}</div>{% else %}<span class="muted" title="The company did not publish a date">found {{ j.first_seen|fdate }}</span>{% endif %}</td>
+    <td>{{ spons(j.sponsorship) }}</td>
+    <td>{{ status_badge(j.status) }}</td>
+    <td style="text-align:right;white-space:nowrap">
+      {% set u = open_url(j)|safe_url %}{% if u %}<a href="{{ u }}" target="_blank" rel="noopener noreferrer">Posting &#8599;</a>{% endif %}
+      {% if j.status not in ('skipped','applied','interview','offer') %}
+      <form class="inline" method="post" action="/jobs/{{ j.id }}/status" style="margin-left:6px">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="status" value="skipped">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button type="submit" title="Not interested: move it to Skipped">Skip</button></form>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="muted small" style="margin-top:10px">Showing up to 300 rows. <b>Match</b> is how well the posting fits your resume; <b>Resume ATS</b> is the check of the resume made for that job. Open a held job and choose "New match" to approve it (a company can hold only {{ max_per_company }} at a time).</p>
+{% else %}
+<div class="empty">No jobs in this view yet.</div>
+{% endif %}
+{% endblock %}

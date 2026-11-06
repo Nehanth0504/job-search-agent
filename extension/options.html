@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Job Agent settings</title>
+<style>
+  body{font:14px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:520px;margin:30px auto;color:#14171f}
+  label{display:block;margin:14px 0 4px;font-weight:600} input{width:100%;padding:8px;border:1px solid #ccd;border-radius:8px;box-sizing:border-box}
+  button{margin-top:16px;padding:9px 16px;border:0;border-radius:9px;background:#6d5efc;color:#fff;font-weight:600;cursor:pointer}
+  #msg{margin-top:12px} .ok{color:#0f7a4a} .bad{color:#b3261e} p{color:#677084}
+</style></head>
+<body>
+<h2>Job Agent settings</h2>
+<p>Connect the extension to your dashboard. Tailscale must be on.</p>
+<label for="url">Dashboard address</label>
+<input id="url" placeholder="https://jobagent.your-tailnet.ts.net">
+<label for="pw">Dashboard password</label>
+<input id="pw" type="password">
+<button id="save">Save and test</button>
+<div id="msg"></div>
+<script src="options.js"></script>
+</body></html>

@@ -1,0 +1,11 @@
+# Seed list. ats: greenhouse | lever | ashby.  slug = the id in the company's job-board URL,
+# e.g. boards.greenhouse.io/<slug>, jobs.lever.co/<slug>, jobs.ashbyhq.com/<slug>.
+# These are EXAMPLES - verify each slug resolves and grow this list (hundreds is normal).
+companies:
+  - {name: Anthropic, ats: greenhouse, slug: anthropic}
+  - {name: Databricks, ats: greenhouse, slug: databricks}
+  - {name: Scale AI, ats: greenhouse, slug: scaleai}
+  - {name: Mistral AI, ats: lever, slug: mistral}
+  - {name: Cohere, ats: ashby, slug: cohere}
+  - {name: Perplexity, ats: ashby, slug: perplexity}
+  - {"name": "Microsoft", "ats": "eightfold", "host": "apply.careers.microsoft.com", "domain": "microsoft.com", "every_seconds": 900}

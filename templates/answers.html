@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Application answers{% endblock %}
+{% block body %}
+<p class="small"><a href="/jobs/{{ job.id }}">&larr; Back to the job</a></p>
+<h1>Application answers</h1>
+<p class="sub">{{ job.title }} &middot; {{ job.company }}. Copy these into the application form. Edit anything, then save.</p>
+<form method="post" action="/jobs/{{ job.id }}/answers">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="n_job" value="{{ jobq|length }}"><input type="hidden" name="n_std" value="{{ std|length }}">
+  <div class="panel">
+    <h2>For this job</h2>
+    <p class="small muted">Written from your resume and this posting. Personalise the first one with anything specific you like about {{ job.company }}.</p>
+    {% for q, a in jobq %}
+      <p style="margin:14px 0 6px"><input type="text" name="jq{{ loop.index0 }}" value="{{ q }}" style="width:100%;font-weight:600"></p>
+      <textarea name="ja{{ loop.index0 }}" style="min-height:130px;width:100%">{{ a }}</textarea>
+    {% endfor %}
+  </div>
+  <div class="panel">
+    <h2>Standard answers (same for every job)</h2>
+    <p class="small muted">Filled from your resume where possible. <b>Check these once</b>, especially work authorization,
+      sponsorship and salary; your saved version is used for every job.</p>
+    {% for q, a in std %}
+      <div class="row" style="gap:10px;margin:8px 0;align-items:flex-start">
+        <input type="text" name="sq{{ loop.index0 }}" value="{{ q }}" style="flex:1.2">
+        <textarea name="sa{{ loop.index0 }}" style="flex:1;min-height:42px">{{ a }}</textarea>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="row" style="margin-bottom:30px">
+    <button class="primary" type="submit" name="action" value="save">Save answers</button>
+    <button type="submit" name="action" value="rebuild">Rebuild this job's answers from my resume</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Tailor now{% endblock %}
+{% block body %}
+<h1>Tailor now</h1>
+<p class="sub">Paste a job description and get a resume built from your master resume for it, right away.</p>
+{% if not has_master %}<div class="flash warn">No master resume yet. <a href="/resume">Upload it first.</a></div>{% endif %}
+<div class="grid3">
+  <div class="panel">
+    <form method="post" action="/tailor">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <p><input type="text" name="title" value="{{ form.title }}" placeholder="Job title (e.g. Software Engineer, AI/ML)" style="width:100%"></p>
+      <p><input type="text" name="company" value="{{ form.company }}" placeholder="Company" style="width:100%"></p>
+      <textarea name="description" placeholder="Paste the full job description here" style="min-height:300px" required>{{ form.description }}</textarea>
+      <p><button class="primary" type="submit">Tailor my resume</button></p>
+    </form>
+  </div>
+  <div>
+  {% if result %}
+    {% set r = result.res %}
+    <div class="panel">
+      <h2>Result</h2>
+      <div class="row">
+        <div class="ring {{ 'ok' if r.score >= 80 else 'warn' }}" style="--p:{{ r.score|round(0)|int }}"><b>{{ r.score|round(0)|int }}</b></div>
+        <div style="flex:1">
+          <div><b>ATS match: {{ r.score|round(0)|int }} / 100</b>
+            {% if r.meets_target %}<span class="badge ok">strong match</span>{% else %}<span class="badge warn">below 80</span>{% endif %}</div>
+          <div class="muted small">{% for p in r.parts or [] %}{{ p.name }} {{ p.pts|round(0)|int }}/{{ p.max }}{% if not loop.last %} &middot; {% endif %}{% endfor %}</div>
+        {% if r.missing_terms %}<div class="small" style="margin-top:6px">Posting keywords not in this resume:</div><div class="chips gap">{% for s in r.missing_terms[:15] %}<span>{{ s }}</span>{% endfor %}</div>{% endif %}
+          <div class="muted small">Match with the posting: <b>{{ result.match|round(0)|int }}</b></div>
+          <p style="margin:12px 0 0"><a class="btn primary" href="/adhoc/{{ result.folder }}/{{ result.file }}">Download resume (.docx)</a></p>
+        </div>
+      </div>
+      <ul class="checks">{% for c in r.checks %}<li class="{{ '' if c.ok else 'no' }}">{{ c.name }}</li>{% endfor %}</ul>
+    </div>
+    <div class="panel">
+      <h2>Keywords</h2>
+      <div class="small muted">In your resume</div>
+      <div class="chips">{% for s in result.matched %}<span>{{ s }}</span>{% else %}<span class="muted">none detected</span>{% endfor %}</div>
+      <div class="small muted" style="margin-top:10px">Missing from your resume</div>
+      <div class="chips gap">{% for s in result.gaps %}<span>{{ s }}</span>{% else %}<span style="background:none" class="muted">none, your resume covers everything detected</span>{% endfor %}</div>
+    </div>
+  {% else %}
+    <div class="empty">Your result appears here.</div>
+  {% endif %}
+  </div>
+</div>
+{% endblock %}

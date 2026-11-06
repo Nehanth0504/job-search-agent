@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block head %}<meta http-equiv="refresh" content="60">{% endblock %}
+{% block body %}
+<h1>Overview</h1>
+<p class="sub">What needs your attention, and where your applications stand.</p>
+<div class="cards">
+  <a class="card" href="/jobs?status=notified"><div class="n">{{ counts.get('notified', 0) }}</div><div class="l">New matches to review</div></a>
+  <a class="card" href="/jobs?status=applied"><div class="n">{{ counts.get('applied', 0) }}</div><div class="l">Applied</div></a>
+  <a class="card" href="/jobs?status=interview"><div class="n">{{ counts.get('interview', 0) }}</div><div class="l">Interviews</div></a>
+  <a class="card" href="/jobs?status=offer"><div class="n">{{ counts.get('offer', 0) }}</div><div class="l">Offers</div></a>
+  <a class="card" href="/jobs?status=needs_sponsorship_check"><div class="n">{{ counts.get('needs_sponsorship_check', 0) }}</div><div class="l">On hold: sponsorship unclear</div></a>
+</div>
+<p class="muted small" style="margin-top:12px">Filtered out automatically:
+  {{ counts.get('rejected_sponsorship', 0) }} rule out sponsorship &middot;
+  {{ counts.get('low_score', 0) }} low match &middot;
+  {{ counts.get('wrong_level', 0) }} wrong experience level &middot;
+  {{ counts.get('location_unclear', 0) }} location unclear (<a href="/jobs?status=location_unclear">review</a>) &middot;
+  {{ counts.get('capped', 0) }} over the {{ max_per_company }}-per-company limit.</p>
+
+<div class="section">
+<h2>Just posted <span class="muted small" style="font-weight:400">last 24 hours, newest first &middot; this page refreshes every minute</span></h2>
+{% if fresh %}
+<div class="tablewrap"><table>
+  <thead><tr><th>Posted</th><th>Match</th><th>Job</th><th></th></tr></thead>
+  <tbody>
+  {% for j in fresh %}
+  {% set p = (j.posted_at|posted).split(' · ') %}
+  <tr>
+    <td style="white-space:nowrap"><b>{{ p[1] }}</b><div class="muted small">{{ p[0] }}</div></td>
+    <td><span class="pill {{ 'hi' if (j.score or 0) >= 75 else ('mid' if (j.score or 0) >= 60 else 'lo') }}">{{ (j.score or 0)|round(0)|int }}</span></td>
+    <td><a class="t" href="/jobs/{{ j.id }}">{{ j.title }}</a>
+        <div class="muted small">{{ j.company }}{% if j.location %} &middot; {{ j.location }}{% endif %}{% if loc_unclear(j.location, j.description if j.description is defined else none) %} <span class="badge warn" title="The posting doesn't clearly say it is in the US or open to US remote. Check before applying.">&#9873; Check location</span>{% endif %}{% if unconfirmed(j) %} <span class="badge warn" title="Seen on a job site; the agent hasn't found it on the company's own careers site yet. Check it there before applying.">&#9873; Not confirmed on company site</span>{% endif %}</div>
+        {% if j.sponsorship not in ('sponsors', 'likely_sponsors') %}<span class="badge warn" style="margin-top:4px">&#9873; Sponsorship unclear</span>{% endif %}</td>
+    <td style="text-align:right;white-space:nowrap">
+      {% set u = open_url(j)|safe_url %}{% if u %}<a class="btn primary" href="{{ u }}" target="_blank" rel="noopener noreferrer">Apply &#8599;</a>{% endif %}
+      <a class="btn" href="/jobs/{{ j.id }}">Resume</a>
+      {% if j.status not in ('skipped','applied','interview','offer') %}
+      <form class="inline" method="post" action="/jobs/{{ j.id }}/status" style="margin-left:6px">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="status" value="skipped">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button type="submit" title="Not interested: move it to Skipped">Skip</button></form>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="empty">Nothing posted in the last 24 hours yet. New postings appear here within about a minute of going live.</div>
+{% endif %}
+</div>
+
+<div class="section">
+<h2>Best new matches</h2>
+{% if top %}
+<div class="tablewrap"><table>
+  <thead><tr><th>#</th><th>Priority</th><th>Job</th><th>Why it ranks here</th><th></th></tr></thead>
+  <tbody>
+  {% for p, why, j in top %}
+  <tr>
+    <td class="muted">{{ loop.index }}</td>
+    <td><span class="pill {{ 'hi' if p >= 75 else ('mid' if p >= 60 else 'lo') }}" title="Apply priority">{{ p|round(0)|int }}</span></td>
+    <td><a class="t" href="/jobs/{{ j.id }}">{{ j.title }}</a>
+        <div class="muted small">{{ j.company }}{% if j.location %} &middot; {{ j.location }}{% endif %}{% if loc_unclear(j.location, j.description if j.description is defined else none) %} <span class="badge warn" title="The posting doesn't clearly say it is in the US or open to US remote. Check before applying.">&#9873; Check location</span>{% endif %}{% if unconfirmed(j) %} <span class="badge warn" title="Seen on a job site; the agent hasn't found it on the company's own careers site yet. Check it there before applying.">&#9873; Not confirmed on company site</span>{% endif %}</div>
+        {% if j.posted_at %}<div class="small" title="Date the company posted it">Posted {{ j.posted_at|posted }}</div>{% elif j.first_seen %}<div class="small muted" title="The company did not publish a date">Found {{ j.first_seen|fdate }}</div>{% endif %}
+        {% if j.sponsorship not in ('sponsors', 'likely_sponsors') %}<span class="badge warn" style="margin-top:4px">&#9873; Sponsorship unclear</span>{% endif %}</td>
+    <td class="small muted" style="max-width:300px">{{ why|join(' · ') }}</td>
+    <td style="text-align:right;white-space:nowrap">
+      {% set u = open_url(j)|safe_url %}{% if u %}<a href="{{ u }}" target="_blank" rel="noopener noreferrer">Posting &#8599;</a>{% endif %}
+      <form class="inline" method="post" action="/jobs/{{ j.id }}/resume/tailor" style="margin-left:8px">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="next" value="edit">
+        <button type="submit">Tailor</button></form>
+      <form class="inline" method="post" action="/jobs/{{ j.id }}/status">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="status" value="applied">
+        <button type="submit">Mark applied</button></form>
+      {% if j.status not in ('skipped','applied','interview','offer') %}
+      <form class="inline" method="post" action="/jobs/{{ j.id }}/status" style="margin-left:6px">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="status" value="skipped">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button type="submit" title="Not interested: move it to Skipped">Skip</button></form>{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="muted small" style="margin-top:10px">Ranked best first by priority: resume match, how certain sponsorship is, keyword coverage and freshness. <a href="/today">See today's full ranked list &rarr;</a></p>
+{% else %}
+<div class="empty">Nothing waiting. New matches appear here after the agent runs (<code>python pipeline.py --once</code>).{% if counts.get('needs_sponsorship_check') %}<br><a href="/jobs?status=needs_sponsorship_check">{{ counts.get('needs_sponsorship_check') }} jobs are on hold</a> because sponsorship is unclear.{% endif %}</div>
+{% endif %}
+</div>
+
+<div class="grid2 section">
+  <div>
+    <h2>Recently applied</h2>
+    {% if recent %}<div class="panel">{% for r in recent %}
+      <div style="padding:4px 0"><a href="/jobs/{{ r.id }}">{{ r.company }} &mdash; {{ r.title }}</a> <span class="muted small">{{ r.applied_at|fdate }}</span></div>
+    {% endfor %}</div>{% else %}<div class="empty">No applications recorded yet.</div>{% endif %}
+  </div>
+  <div>
+    <h2>Follow-ups</h2>
+    {% if due %}<div class="panel">{% for r in due %}
+      <div style="padding:4px 0"><a href="/jobs/{{ r.id }}">{{ r.company }} &mdash; {{ r.title }}</a>
+        <span class="badge {{ 'bad' if r.follow_up <= today else '' }}">{{ r.follow_up }}</span></div>
+    {% endfor %}</div>{% else %}<div class="empty">No follow-ups set.</div>{% endif %}
+  </div>
+</div>
+
+{% if at_cap %}
+<div class="section"><h2>Companies at the {{ max_per_company }}-position limit</h2>
+<div class="panel small">{% for c in at_cap %}<span class="badge">{{ c.company }}</span> {% endfor %}</div></div>
+{% endif %}
+{% endblock %}

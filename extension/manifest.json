@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Job Agent - Application Filler",
+  "version": "1.0.0",
+  "description": "Fills job applications from your Job Agent dashboard (tailored resume, cover letter, your answers). You review and submit.",
+  "action": { "default_popup": "popup.html", "default_title": "Fill this application" },
+  "options_page": "options.html",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://*.ts.net/*", "http://jobagent:8000/*", "http://100.94.196.20:8000/*",
+    "https://*.greenhouse.io/*", "https://*.lever.co/*", "https://*.ashbyhq.com/*",
+    "https://*.myworkdayjobs.com/*", "https://*.workable.com/*", "https://*.smartrecruiters.com/*",
+    "https://*.recruitee.com/*", "https://*.bamboohr.com/*", "https://*.icims.com/*", "https://*.breezy.hr/*",
+    "https://*.oraclecloud.com/*", "https://*.rippling.com/*", "https://*.pinpointhq.com/*"
+  ]
+}
